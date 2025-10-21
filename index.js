@@ -7,6 +7,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const petRoutes = require('./routes/pet.routes');
+const postRoutes = require('./routes/post.routes');
 // (Aquí importaremos más rutas en el futuro, ej: post.routes.js)
 
 const app = express();
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/pets', petRoutes);
+app.use('/api/posts', postRoutes);
 // (Tu ruta de /pingdb ya no es necesaria, la borramos)
 // (El pool de BD también lo borramos de aquí, ahora está en utils/db.js)
 
