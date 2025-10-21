@@ -1,54 +1,31 @@
-// 1. Cargar variables de entorno (el .env)
+// index.js
 require('dotenv').config();
-
-// 2. Importar las librerías
 const express = require('express');
-const { Pool } = require('pg'); // Importar el conector de PostgreSQL
 const cors = require('cors');
-// 3. Crear la App de Express
+
+// Importar nuestras rutas
+const authRoutes = require('./routes/auth.routes');
+// (Aquí importaremos más rutas en el futuro, ej: post.routes.js)
+
 const app = express();
-const port = process.env.PORT || 3000; // Usar el puerto 3000 por defecto
+const port = process.env.PORT || 3000;
 
-app.use(cors());
-// 4. Configurar el "Pool" de Conexión a la BD
-//    pg usará automáticamente la variable DATABASE_URL que pusimos en .env
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // --- ¡ESTA ES LA CORRECCIÓN! ---
-  // Forzamos SSL para TODAS las conexiones (locales y de producción)
-  // ya que Render lo requiere para conexiones externas.
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+// --- Configuración de Middlewares ---
+app.use(cors()); // Habilita CORS
+app.use(express.json()); // <-- ¡MUY IMPORTANTE! Permite que Express entienda JSON
 
-// 5. Crear una ruta de prueba (Endpoint)
+// --- Definición de Rutas ---
 app.get('/', (req, res) => {
-  res.send('¡Hola Mundo! La API está funcionando.');
+  res.send('¡Hola Mundo! La API de mascotas está funcionando.');
 });
 
-// 6. Crear una ruta para PROBAR la conexión a la BD
-app.get('/pingdb', async (req, res) => {
-  try {
-    const client = await pool.connect(); // Intenta conectar
-    const result = await client.query('SELECT NOW()'); // Pide la hora actual a la BD
+// Usamos las rutas de autenticación
+app.use('/api/auth', authRoutes);
 
-    res.json({
-      message: '¡Conexión a la BD exitosa!',
-      hora_db: result.rows[0].now
-    });
+// (Tu ruta de /pingdb ya no es necesaria, la borramos)
+// (El pool de BD también lo borramos de aquí, ahora está en utils/db.js)
 
-    client.release(); // Libera la conexión
-  } catch (error) {
-    // Si falla, muestra el error
-    res.status(500).json({
-      message: '¡Error al conectar a la BD!',
-      error: error.message
-    });
-  }
-});
-
-// 7. Iniciar el servidor
+// Iniciar el servidor
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
 });
