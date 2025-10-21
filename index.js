@@ -4,11 +4,12 @@ require('dotenv').config();
 // 2. Importar las librerías
 const express = require('express');
 const { Pool } = require('pg'); // Importar el conector de PostgreSQL
-
+const cors = require('cors');
 // 3. Crear la App de Express
 const app = express();
 const port = process.env.PORT || 3000; // Usar el puerto 3000 por defecto
 
+app.use(cors());
 // 4. Configurar el "Pool" de Conexión a la BD
 //    pg usará automáticamente la variable DATABASE_URL que pusimos en .env
 const pool = new Pool({

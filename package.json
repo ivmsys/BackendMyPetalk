@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/ivmsys/BackendPetNetwork#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "pg": "^8.16.3"
