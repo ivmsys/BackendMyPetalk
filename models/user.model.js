@@ -25,3 +25,15 @@ exports.findByEmailOrUsername = async ({ email, username }) => {
   const { rows } = await db.query(query, params);
   return rows[0]; // Devuelve el usuario si existe, o undefined si no
 };
+
+// Modelo para encontrar un usuario por su ID (seguro, sin contraseña)
+exports.findById = async (userId) => {
+  const query = `
+    SELECT user_id, username, email, created_at FROM users
+    WHERE user_id = $1;
+  `;
+  const params = [userId];
+
+  const { rows } = await db.query(query, params);
+  return rows[0]; // Devuelve el usuario (sin el hash)
+};
