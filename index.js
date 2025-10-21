@@ -16,23 +16,8 @@ const port = process.env.PORT || 3000;
 // --- Configuración de Middlewares ---
 
 // Configurar CORS con una "whitelist"
-const whitelist = [
-  'http://localhost:5500', // Tu Live Server local
-  'https://petnetwork.netlify.app/' // ¡¡CAMBIA ESTO POR TU URL REAL DE NETLIFY!!
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    // !origin permite peticiones sin origen (como Postman o apps móviles)
-    if (whitelist.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('No permitido por CORS'));
-    }
-  }
-};
-
-app.use(cors(corsOptions)); // <-- ¡Usa la nueva configuración!
+// Habilita CORS para TODOS los dominios
+app.use(cors());
 app.use(express.json()); // Permite que Express entienda JSON
 
 // (El resto de tu index.js sigue igual...)
