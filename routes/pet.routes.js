@@ -4,7 +4,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const petController = require('../controllers/pet.controller');
 const authMiddleware = require('../middleware/auth.middleware');
-
+const uploadMiddleware = require('../middleware/upload.middleware');
 // ¡¡Aplicamos el middleware a TODAS las rutas de este archivo!!
 // Cualquier petición a /api/pets/* primero pasará por el guardia.
 router.use(authMiddleware);
@@ -26,5 +26,14 @@ router.post(
 // GET /api/pets/
 // (Para obtener todas mis mascotas)
 router.get('/', petController.getMyPets);
+
+// POST /api/pets/:petId/upload-picture
+// (Para subir la foto de una mascota)
+router.post(
+  '/:petId/upload-picture',
+  // Usamos el middleware de Multer para manejar un solo archivo llamado "image"
+  uploadMiddleware.single('image'), 
+  petController.uploadPetPicture
+);
 
 module.exports = router;

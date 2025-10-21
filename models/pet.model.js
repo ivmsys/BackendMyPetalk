@@ -27,3 +27,29 @@ exports.findByOwnerId = async (ownerId) => {
   const { rows } = await db.query(query, params);
   return rows; // Devuelve un array de mascotas
 };
+
+// Modelo para encontrar una mascota por su ID y el ID del dueño (para seguridad)
+exports.findByIdAndOwner = async (petId, ownerId) => {
+  const query = `
+    SELECT * FROM pets
+    WHERE pet_id = $1 AND owner_id = $2;
+  `;
+  const params = [petId, ownerId];
+
+  const { rows } = await db.query(query, params);
+  return rows[0]; // Devuelve la mascota si le pertenece al dueño
+};
+
+// Modelo para actualizar la URL de la foto de perfil
+exports.updateProfilePicture = async (petId, profilePictureUrl) => {
+  const query = `
+    UPDATE pets
+    SET profile_picture_url = $1
+    WHERE pet_id = $2
+    RETURNING *;
+  `;
+  const params = [profilePictureUrl, petId];
+
+  const { rows } = await db.query(query, params);
+  return rows[0]; // Devuelve la mascota actualizada
+};

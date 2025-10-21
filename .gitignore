@@ -3,3 +3,5 @@ node_modules/
 
 # Archivo de secretos
 .env
+# Archivos temporales de subida
+uploads/
