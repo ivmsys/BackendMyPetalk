@@ -2,7 +2,6 @@
 const PetModel = require('../models/pet.model');
 const { validationResult } = require('express-validator');
 const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -76,14 +75,15 @@ exports.uploadPetPicture = async (req, res) => {
       return res.status(403).json({ message: 'Permiso denegado. Esta mascota no es tuya.' });
     }
 
-    // 3. Subir el archivo a Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
+    // 3. Convertir el buffer (archivo en memoria) a un string data-uri
+    const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+    // Subir el data-uri a Cloudinary
+    const result = await cloudinary.uploader.upload(dataUri, {
       folder: `pet-social/${ownerId}`, // Organiza en carpetas por usuario
       public_id: `${petId}_profile` // Nombre del archivo en Cloudinary
     });
 
-    // 4. Borrar el archivo temporal de nuestro servidor
-    fs.unlinkSync(req.file.path);
 
     // 5. Guardar la URL segura en la base de datos
     const updatedPet = await PetModel.updateProfilePicture(petId, result.secure_url);
@@ -94,11 +94,8 @@ exports.uploadPetPicture = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-    // Si algo falla, borrar el archivo temporal si existe
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
-    res.status(500).json({ message: 'Error en el servidor' });
-  }
+  console.error(error);
+  // ¡Ya no necesitamos borrar el archivo, no existe en disco!
+  res.status(500).json({ message: 'Error en el servidor' });
+}
 };
