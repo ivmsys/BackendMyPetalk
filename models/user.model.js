@@ -37,3 +37,17 @@ exports.findById = async (userId) => {
   const { rows } = await db.query(query, params);
   return rows[0]; // Devuelve el usuario (sin el hash)
 };
+// Modelo para buscar usuarios por nombre de usuario
+// (ILIKE no distingue mayúsculas/minúsculas)
+exports.searchByUsername = async (query, currentUserId) => {
+  const searchQuery = `%${query}%`; // Añade '%' para buscar coincidencias parciales
+  const sql = `
+    SELECT user_id, username, email FROM users
+    WHERE username ILIKE $1 
+      AND user_id != $2 -- Excluirse a uno mismo de la búsqueda
+    LIMIT 10; -- Limitar a 10 resultados
+  `;
+  
+  const { rows } = await db.query(sql, [searchQuery, currentUserId]);
+  return rows;
+};

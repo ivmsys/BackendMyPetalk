@@ -15,5 +15,12 @@ router.get(
   authMiddleware, // <-- ¡AQUÍ ESTÁ LA MAGIA!
   authController.getMe
 );
+// GET /api/users/search?q=...
+// (Para buscar usuarios - PROTEGIDA)
+router.get(
+  '/search',
+  authMiddleware, // Requiere login para buscar
+  authController.searchUsers
+);
 
 module.exports = router;
