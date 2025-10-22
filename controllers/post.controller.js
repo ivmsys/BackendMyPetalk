@@ -11,7 +11,7 @@ exports.createPost = async (req, res) => {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { content, petId } = req.body;
+  const { content, petIds } = req.body;
   // Obtenemos el ID del autor (que viene del token)
   const authorId = req.user.id; 
 
@@ -20,11 +20,11 @@ exports.createPost = async (req, res) => {
     // ¿El 'petId' (si existe) realmente le pertenece al 'authorId'?
     // (Por ahora lo omitiremos para simplificar, pero es una mejora de seguridad)
 
-    const newPost = await PostModel.create({
-      authorId,
-      content,
-      petId
-    });
+  const newPost = await PostModel.create({
+    authorId,
+    content,
+    petIds // <-- Pasa el array
+  });
 
     res.status(201).json({
       message: 'Post creado exitosamente',

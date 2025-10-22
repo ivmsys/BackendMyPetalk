@@ -15,7 +15,10 @@ router.post(
   authMiddleware, // <-- Requiere login
   [
     // Reglas de validación
-    body('content', 'El contenido del post es requerido').notEmpty()
+    
+    body('content', 'El contenido del post es requerido').notEmpty(),
+    body('petIds', 'petIds debe ser un array').optional().isArray()
+    
   ],
   postController.createPost
 );
