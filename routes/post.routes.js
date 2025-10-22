@@ -4,23 +4,21 @@ const router = express.Router();
 const { body } = require('express-validator');
 const postController = require('../controllers/post.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const uploadMiddleware = require('../middleware/upload.middleware');
 const getUserIdMiddleware = require('../middleware/getUserId.middleware');
 
 // --- Rutas ---
-
 // POST /api/posts/
-// (Para crear un nuevo post - PROTEGIDA)
 router.post(
   '/',
-  authMiddleware, // <-- Requiere login
+  authMiddleware, // 1. Requiere login
+  uploadMiddleware.array('media', 4), // 2. Acepta hasta 4 archivos llamados 'media'
   [
-    // Reglas de validación
-    
+    // 3. Reglas de validación
     body('content', 'El contenido del post es requerido').notEmpty(),
     body('petIds', 'petIds debe ser un array').optional().isArray()
-    
   ],
-  postController.createPost
+  postController.createPost // 4. Pasa al controlador
 );
 
 // GET /api/posts/ (PÚBLICA, pero "consciente" del usuario)

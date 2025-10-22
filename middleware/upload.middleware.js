@@ -5,6 +5,13 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 
 // Crear la instancia de Multer
-const upload = multer({ storage: storage });
+const multerInstance = multer({ storage: storage });
 
-module.exports = upload;
+// Exportamos dos middlewares separados
+module.exports = {
+  // Para un solo archivo (como la foto de perfil de la mascota)
+  single: (fieldName) => multerInstance.single(fieldName),
+  
+  // Para múltiples archivos (hasta 4)
+  array: (fieldName, maxCount) => multerInstance.array(fieldName, maxCount)
+};

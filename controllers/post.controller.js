@@ -2,29 +2,56 @@
 const PostModel = require('../models/post.model');
 const LikeModel = require('../models/like.model');
 const { validationResult } = require('express-validator');
+const cloudinary = require('cloudinary').v2;
 
 // Controlador para crear un nuevo post
 exports.createPost = async (req, res) => {
-  // Validar los datos que vienen del body
+  // 1. Validar los datos que vienen del body
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { content, petIds } = req.body;
-  // Obtenemos el ID del autor (que viene del token)
-  const authorId = req.user.id; 
+  // 2. Obtener datos. ¡petIds viene como STRING desde FormData!
+  const { content } = req.body;
+  const petIds = req.body.petIds ? JSON.parse(req.body.petIds) : []; // Convertir de string a array
+  const authorId = req.user.id;
+  const files = req.files; // Array de archivos de Multer
+  
+  let mediaUrls = []; // Array para guardar las URLs de Cloudinary
 
   try {
-    // Aquí podrías añadir una verificación:
-    // ¿El 'petId' (si existe) realmente le pertenece al 'authorId'?
-    // (Por ahora lo omitiremos para simplificar, pero es una mejora de seguridad)
+    // 3. Subir archivos a Cloudinary (si existen)
+    if (files && files.length > 0) {
+      // Usamos Promise.all para subir todos en paralelo
+      const uploadPromises = files.map(file => {
+        // Convertir el buffer a data-uri
+        const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        // Detectar si es video
+        const resourceType = file.mimetype.startsWith('video') ? 'video' : 'image';
+        
+        return cloudinary.uploader.upload(dataUri, {
+          folder: `pet-social/posts/${authorId}`,
+          resource_type: resourceType // Decirle a Cloudinary si es video o imagen
+        });
+      });
+      
+      const uploadResults = await Promise.all(uploadPromises);
+      
+      // Guardar solo la URL y el tipo
+      mediaUrls = uploadResults.map(result => ({
+        url: result.secure_url,
+        type: result.resource_type
+      }));
+    }
 
-  const newPost = await PostModel.create({
-    authorId,
-    content,
-    petIds // <-- Pasa el array
-  });
+    // 4. Crear el post en la base de datos
+    const newPost = await PostModel.create({
+      authorId,
+      content,
+      petIds,
+      mediaUrls // Pasamos el array de URLs
+    });
 
     res.status(201).json({
       message: 'Post creado exitosamente',
