@@ -16,7 +16,7 @@ router.post(
   [
     // 3. Reglas de validación
     body('content', 'El contenido del post es requerido').notEmpty(),
-    body('petIds', 'petIds debe ser un array').optional().isArray()
+    body('petIds', 'petIds debe ser un string JSON válido').optional().isJSON()  
   ],
   postController.createPost // 4. Pasa al controlador
 );
