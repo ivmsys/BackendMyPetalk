@@ -1,5 +1,6 @@
 // controllers/post.controller.js
 const PostModel = require('../models/post.model');
+const LikeModel = require('../models/like.model');
 const { validationResult } = require('express-validator');
 
 // Controlador para crear un nuevo post
@@ -39,8 +40,48 @@ exports.createPost = async (req, res) => {
 // Controlador para obtener todos los posts (el feed)
 exports.getAllPosts = async (req, res) => {
   try {
-    const posts = await PostModel.findAll();
-    res.json(posts); // Devuelve un array de posts
+    // req.user puede existir o no, gracias a nuestro nuevo middleware
+    const currentUserId = req.user ? req.user.id : null;
+
+    const posts = await PostModel.findAll(currentUserId);
+    res.json(posts);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
+
+// Controlador para alternar "Me Gusta" en un post
+exports.toggleLike = async (req, res) => {
+  try {
+    const userId = req.user.id; // Requiere login
+    const { postId } = req.params; // De la URL
+
+    // 1. Verificar si el "me gusta" ya existe
+    const existingLike = await LikeModel.find(userId, postId);
+
+    let userHasLiked;
+
+    if (existingLike) {
+      // 2. Si existe, borrarlo (unlike)
+      await LikeModel.delete(userId, postId);
+      userHasLiked = false;
+    } else {
+      // 3. Si no existe, crearlo (like)
+      await LikeModel.create(userId, postId);
+      userHasLiked = true;
+    }
+
+    // 4. Obtener el nuevo conteo total
+    const newLikeCount = await LikeModel.countForPost(postId);
+
+    // 5. Responder al frontend
+    res.json({
+      message: userHasLiked ? 'Like añadido' : 'Like eliminado',
+      userHasLiked,
+      newLikeCount
+    });
 
   } catch (error) {
     console.error(error);

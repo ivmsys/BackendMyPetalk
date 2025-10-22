@@ -4,6 +4,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const postController = require('../controllers/post.controller');
 const authMiddleware = require('../middleware/auth.middleware');
+const getUserIdMiddleware = require('../middleware/getUserId.middleware');
 
 // --- Rutas ---
 
@@ -19,8 +20,20 @@ router.post(
   postController.createPost
 );
 
-// GET /api/posts/
-// (Para obtener el feed de todos los posts - PÚBLICA)
-router.get('/', postController.getAllPosts);
+// GET /api/posts/ (PÚBLICA, pero "consciente" del usuario)
+router.get(
+  '/',
+  getUserIdMiddleware, // <-- AÑADE ESTO
+  postController.getAllPosts
+);
+
+
+// POST /api/posts/:postId/like
+// (Para dar/quitar "me gusta" - PROTEGIDA)
+router.post(
+  '/:postId/like',
+  authMiddleware, // <-- Requiere login
+  postController.toggleLike
+);
 
 module.exports = router;
