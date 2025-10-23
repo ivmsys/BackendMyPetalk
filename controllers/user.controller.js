@@ -1,5 +1,6 @@
 // controllers/user.controller.js
 const UserModel = require('../models/user.model');
+const PetModel = require('../models/pet.model');
 // controllers/user.controller.js
 const cloudinary = require('cloudinary').v2;
 // ... (asegúrate de que esté configurado como en pet.controller.js)
@@ -85,6 +86,44 @@ exports.uploadProfilePicture = async (req, res) => {
 
   } catch (error) {
     console.error('Error uploading profile picture:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
+
+// controllers/user.controller.js -> Añade esta función
+// Controlador para obtener el perfil público de otro usuario
+exports.getUserProfile = async (req, res) => {
+  try {
+    const userIdToView = req.params.userId; // ID del perfil a ver (de la URL)
+    const currentUserId = req.user.id; // ID del usuario logueado (del token)
+
+    if (userIdToView === currentUserId) {
+      // Si intenta ver su propio perfil, redirigirlo a /me (o manejarlo aquí)
+      // Por simplicidad, devolveremos un error por ahora.
+      return res.status(400).json({ message: 'Usa /api/users/me para ver tu propio perfil.' });
+    }
+
+    // Usamos Promise.all para buscar datos del usuario y sus mascotas en paralelo
+    const [userData, petsData] = await Promise.all([
+      UserModel.findByIdPublic(userIdToView),
+      PetModel.findByOwnerIdPublic(userIdToView) // Usa la nueva función del modelo de mascotas
+    ]);
+
+    if (!userData) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // (Opcional) Podríamos buscar el estado de amistad aquí también si no lo hicimos en la búsqueda
+    // const friendship = await FriendshipModel.findExisting(currentUserId, userIdToView);
+
+    res.json({
+      user: userData,
+      pets: petsData
+      // friendshipStatus: friendship ? friendship.status : null 
+    });
+
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };

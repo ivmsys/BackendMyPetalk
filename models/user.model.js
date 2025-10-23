@@ -40,18 +40,29 @@ exports.findById = async (userId) => {
 };
 // Modelo para buscar usuarios por nombre de usuario
 // (ILIKE no distingue mayúsculas/minúsculas)
+// models/user.model.js -> Reemplaza searchByUsername
 exports.searchByUsername = async (query, currentUserId) => {
   const searchQuery = `%${query}%`;
   const sql = `
-    SELECT user_id, username, email, profile_picture_url 
-    FROM users
-    WHERE username ILIKE $1 
-      AND user_id != $2 
-    LIMIT 10; 
+    SELECT 
+      u.user_id, 
+      u.username, 
+      u.email, -- Todavía lo necesitamos aquí para buscar, pero no lo mostraremos siempre
+      u.profile_picture_url,
+      -- Subconsulta para encontrar el estado de amistad con el usuario actual
+      (SELECT status FROM friendships f
+       WHERE (f.user_id1 = $2 AND f.user_id2 = u.user_id)
+          OR (f.user_id1 = u.user_id AND f.user_id2 = $2)
+      ) as friendship_status -- Puede ser 'pending', 'accepted', 'rejected', null
+    FROM users u
+    WHERE u.username ILIKE $1 
+      AND u.user_id != $2 -- Excluirse a uno mismo
+    LIMIT 10;
   `;
-  
+
   const { rows } = await db.query(sql, [searchQuery, currentUserId]);
-  return rows;
+  // Quitar el email antes de devolver (solo lo usamos para buscar)
+  return rows.map(({ email, ...rest }) => rest);
 };
 
 // models/user.model.js -> Añade esta función
@@ -64,5 +75,16 @@ exports.updateProfilePicture = async (userId, profilePictureUrl) => {
     RETURNING user_id, username, email, created_at, profile_picture_url; -- Devuelve el usuario actualizado
   `;
   const { rows } = await db.query(query, [profilePictureUrl, userId]);
+  return rows[0];
+};
+// models/user.model.js -> Añade esta función
+// Modelo para obtener datos públicos de un usuario por ID
+exports.findByIdPublic = async (userId) => {
+  const query = `
+    SELECT user_id, username, created_at, profile_picture_url 
+    FROM users
+    WHERE user_id = $1;
+  `;
+  const { rows } = await db.query(query, [userId]);
   return rows[0];
 };

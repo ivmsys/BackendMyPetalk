@@ -28,7 +28,11 @@ router.get(
   userController.searchUsers 
 );
 
-module.exports = router; // Export the router for use in index.js
+router.get(
+  '/:userId', // Captura el ID de la URL
+  authMiddleware, // Requiere login para ver perfiles
+  userController.getUserProfile 
+);
 
 router.post(
   '/me/picture',
@@ -36,3 +40,5 @@ router.post(
   uploadMiddleware.single('image'), // Espera UN archivo llamado 'image'
   userController.uploadProfilePicture
 );
+
+module.exports = router; // Export the router for use in index.js

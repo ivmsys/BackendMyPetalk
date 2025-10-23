@@ -53,3 +53,16 @@ exports.updateProfilePicture = async (petId, profilePictureUrl) => {
   const { rows } = await db.query(query, params);
   return rows[0]; // Devuelve la mascota actualizada
 };
+
+// models/pet.model.js -> Añade esta función
+// Modelo para encontrar todas las mascotas públicas de un dueño
+exports.findByOwnerIdPublic = async (ownerId) => {
+  const query = `
+    SELECT pet_id, name, species, breed, birth_date, profile_picture_url, created_at 
+    FROM pets
+    WHERE owner_id = $1
+    ORDER BY created_at DESC;
+  `;
+  const { rows } = await db.query(query, [ownerId]);
+  return rows;
+};
