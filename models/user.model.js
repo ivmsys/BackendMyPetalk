@@ -41,18 +41,17 @@ exports.findById = async (userId) => {
 // Modelo para buscar usuarios por nombre de usuario
 // (ILIKE no distingue mayúsculas/minúsculas)
 exports.searchByUsername = async (query, currentUserId) => {
-  // Añade '%' para buscar coincidencias parciales
-  const searchQuery = `%${query}%`; 
+  const searchQuery = `%${query}%`;
   const sql = `
-    SELECT user_id, username, email, profile_picture_url -- <-- AÑADE ESTA COLUMNA
+    SELECT user_id, username, email, profile_picture_url 
     FROM users
-    WHERE username ILIKĘ $1 
+    WHERE username ILIKE $1 
       AND user_id != $2 
     LIMIT 10; 
   `;
-
+  
   const { rows } = await db.query(sql, [searchQuery, currentUserId]);
-  return rows; // Devuelve un array de usuarios encontrados (o vacío)
+  return rows;
 };
 
 // models/user.model.js -> Añade esta función
