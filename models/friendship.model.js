@@ -22,17 +22,22 @@ exports.findByIdAndRecipient = async (friendshipId, recipientId) => {
 };
 
 // Create a new friend request
+// models/friendship.model.js - CORRECTED CODE
 exports.createRequest = async (senderId, receiverId) => {
-  const query = `
-    INSERT INTO friendships (user_id1, user_id2, status, action_user_id)
-    VALUES ($1, $2, 'pending', $1)
-    RETURNING *;
-  `;
   // Ensure user_id1 < user_id2 for consistency with the unique index
   const userId1 = senderId < receiverId ? senderId : receiverId;
   const userId2 = senderId > receiverId ? senderId : receiverId;
 
-  const { rows } = await db.query(query, [userId1, userId2, senderId]);
+  // CORRECTED QUERY: Uses $1, $2, $3 for the three distinct values
+  const query = `
+    INSERT INTO friendships (user_id1, user_id2, status, action_user_id)
+    VALUES ($1, $2, 'pending', $3) 
+    RETURNING *;
+  `;
+  // CORRECTED PARAMS: Matches the placeholders in the query
+  const params = [userId1, userId2, senderId]; 
+
+  const { rows } = await db.query(query, params); 
   return rows[0];
 };
 
