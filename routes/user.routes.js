@@ -1,26 +1,31 @@
 // routes/user.routes.js
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/user.controller');
 
-// Importamos nuestro "guardia"
+// Import controllers and middleware
+const userController = require('../controllers/user.controller'); 
 const authMiddleware = require('../middleware/auth.middleware');
 
+// --- User Routes ---
+
 // GET /api/users/me
-// 1. La petición llega
-// 2. Pasa por authMiddleware (el guardia)
-// 3. Si el token es válido, pasa a authController.getMe
+// Gets the profile information of the currently logged-in user.
+// 1. Passes through authMiddleware to ensure the user is logged in and get req.user.id.
+// 2. Calls userController.getMe to fetch and return user data.
 router.get(
   '/me',
-  authMiddleware, // <-- ¡AQUÍ ESTÁ LA MAGIA!
-  authController.getMe
-);
-// GET /api/users/search?q=...
-// (Para buscar usuarios - PROTEGIDA)
-router.get(
-  '/search',
-  authMiddleware, // Requiere login para buscar
-  authController.searchUsers
+  authMiddleware,   // Requires login
+  userController.getMe 
 );
 
-module.exports = router;
+// GET /api/users/search?q=...
+// Searches for users by username based on the 'q' query parameter.
+// 1. Passes through authMiddleware to ensure only logged-in users can search.
+// 2. Calls userController.searchUsers to perform the search and return results.
+router.get(
+  '/search',        
+  authMiddleware,   // Requires login
+  userController.searchUsers 
+);
+
+module.exports = router; // Export the router for use in index.js
