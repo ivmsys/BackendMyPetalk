@@ -44,10 +44,11 @@ exports.searchByUsername = async (query, currentUserId) => {
   // Añade '%' para buscar coincidencias parciales
   const searchQuery = `%${query}%`; 
   const sql = `
-    SELECT user_id, username, email FROM users 
-    WHERE username ILIKE $1 
-      AND user_id != $2 -- Excluirse a uno mismo de la búsqueda
-    LIMIT 10; -- Limitar a 10 resultados
+    SELECT user_id, username, email, profile_picture_url -- <-- AÑADE ESTA COLUMNA
+    FROM users
+    WHERE username ILIKĘ $1 
+      AND user_id != $2 
+    LIMIT 10; 
   `;
 
   const { rows } = await db.query(sql, [searchQuery, currentUserId]);
