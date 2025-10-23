@@ -57,7 +57,10 @@ exports.acceptRequest = async (req, res) => {
 
     // Update the status to 'accepted'
     const updatedFriendship = await FriendshipModel.updateStatus(friendshipId, 'accepted', recipientId);
-
+    const notification = await NotificationModel.findByRelatedIdAndType(friendshipId, 'friend_request');
+    if (notification) {
+        await NotificationModel.markAsRead([notification.notification_id]);
+    }
     // Optional: Create notification for the original sender?
     // await NotificationModel.create({ userId: friendship.user_id1, type: 'friend_accepted', senderId: recipientId, relatedEntityId: friendshipId });
 
@@ -84,7 +87,11 @@ exports.rejectRequest = async (req, res) => {
     // Update status to 'rejected'
     // Alternative: could delete the row entirely
     const updatedFriendship = await FriendshipModel.updateStatus(friendshipId, 'rejected', recipientId);
-
+    // Buscar y marcar la notificación de solicitud como leída
+    const notification = await NotificationModel.findByRelatedIdAndType(friendshipId, 'friend_request');
+    if (notification) {
+        await NotificationModel.markAsRead([notification.notification_id]);
+    }
     // Optional: Delete the original friend_request notification?
 
     res.json({ message: 'Solicitud de amistad rechazada.', friendship: updatedFriendship });

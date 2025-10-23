@@ -12,7 +12,15 @@ exports.create = async ({ userId, type, senderId, relatedEntityId }) => {
   const { rows } = await db.query(query, params);
   return rows[0];
 };
-
+// Encontrar una notificación por su related_entity_id y tipo
+exports.findByRelatedIdAndType = async (relatedId, type) => {
+  const query = `
+    SELECT notification_id FROM notifications 
+    WHERE related_entity_id = $1 AND type = $2 AND is_read = FALSE 
+    LIMIT 1;`; // Asumimos que solo hay una notificación de solicitud activa por amistad
+  const { rows } = await db.query(query, [relatedId, type]);
+  return rows[0];
+};
 // Get unread notifications for a user, including sender's username
 exports.findUnreadByUserId = async (userId) => {
   const query = `
