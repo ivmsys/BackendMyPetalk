@@ -15,10 +15,14 @@ exports.findExisting = async (userId1, userId2) => {
 exports.findByIdAndRecipient = async (friendshipId, recipientId) => {
   const query = `
     SELECT * FROM friendships 
-    WHERE friendship_id = $1 AND user_id2 = $2 AND status = 'pending'
+    WHERE friendship_id = $1           -- Busca por el ID de la amistad
+      AND status = 'pending'           -- Asegura que esté pendiente
+      AND (user_id1 = $2 OR user_id2 = $2) -- Asegura que el usuario sea parte de la amistad
+      AND action_user_id != $2;        -- Asegura que la última acción NO la hizo el usuario actual
+                                       -- (es decir, el OTRO usuario envió la solicitud)
   `;
   const { rows } = await db.query(query, [friendshipId, recipientId]);
-  return rows[0];
+  return rows[0]; // Devuelve la solicitud si cumple todas las condiciones
 };
 
 // Create a new friend request
