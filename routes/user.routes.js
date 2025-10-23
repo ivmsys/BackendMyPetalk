@@ -5,7 +5,7 @@ const router = express.Router();
 // Import controllers and middleware
 const userController = require('../controllers/user.controller'); 
 const authMiddleware = require('../middleware/auth.middleware');
-
+const uploadMiddleware = require('../middleware/upload.middleware');
 // --- User Routes ---
 
 // GET /api/users/me
@@ -29,3 +29,10 @@ router.get(
 );
 
 module.exports = router; // Export the router for use in index.js
+
+router.post(
+  '/me/picture',
+  authMiddleware,                   // Requiere login
+  uploadMiddleware.single('image'), // Espera UN archivo llamado 'image'
+  userController.uploadProfilePicture
+);

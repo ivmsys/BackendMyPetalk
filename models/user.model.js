@@ -29,7 +29,8 @@ exports.findByEmailOrUsername = async ({ email, username }) => {
 // Modelo para encontrar un usuario por su ID (seguro, sin contraseña)
 exports.findById = async (userId) => {
   const query = `
-    SELECT user_id, username, email, created_at FROM users
+    SELECT user_id, username, email, created_at, profile_picture_url -- <-- AÑADE ESTA COLUMNA
+    FROM users
     WHERE user_id = $1;
   `;
   const params = [userId];
@@ -53,3 +54,15 @@ exports.searchByUsername = async (query, currentUserId) => {
   return rows; // Devuelve un array de usuarios encontrados (o vacío)
 };
 
+// models/user.model.js -> Añade esta función
+// Modelo para actualizar la URL de la foto de perfil del usuario
+exports.updateProfilePicture = async (userId, profilePictureUrl) => {
+  const query = `
+    UPDATE users
+    SET profile_picture_url = $1
+    WHERE user_id = $2
+    RETURNING user_id, username, email, created_at, profile_picture_url; -- Devuelve el usuario actualizado
+  `;
+  const { rows } = await db.query(query, [profilePictureUrl, userId]);
+  return rows[0];
+};

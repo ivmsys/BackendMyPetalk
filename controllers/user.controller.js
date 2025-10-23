@@ -1,6 +1,14 @@
 // controllers/user.controller.js
 const UserModel = require('../models/user.model');
-
+// controllers/user.controller.js
+const cloudinary = require('cloudinary').v2;
+// ... (asegúrate de que esté configurado como en pet.controller.js)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true
+});
 // Controlador para obtener el perfil del usuario logueado
 exports.getMe = async (req, res) => {
   try {
@@ -40,6 +48,43 @@ exports.searchUsers = async (req, res) => {
 
   } catch (error) {
     console.error('Error en searchUsers:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
+
+// controllers/user.controller.js -> Añade esta función
+// Controlador para subir la foto de perfil del usuario logueado
+exports.uploadProfilePicture = async (req, res) => {
+  const userId = req.user.id; // Del token
+
+  try {
+    // 1. Verificar si el archivo se subió
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se subió ningún archivo' });
+    }
+
+    // 2. Subir a Cloudinary (usando el buffer de memoria)
+    const dataUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder: `pet-social/users/${userId}`, // Carpeta específica para usuarios
+      public_id: `profile_${userId}`, // Nombre de archivo predecible
+      overwrite: true, // Sobrescribe si ya existe
+      transformation: [ // Opcional: Recorta a cuadrado y redimensiona
+        { width: 300, height: 300, gravity: "face", crop: "thumb" },
+        { radius: "max" } // Opcional: Hace la imagen redonda
+      ]
+    });
+
+    // 3. Guardar la URL segura en la base de datos
+    const updatedUser = await UserModel.updateProfilePicture(userId, result.secure_url);
+
+    res.json({
+      message: 'Foto de perfil actualizada exitosamente',
+      user: updatedUser // Devuelve el usuario con la nueva URL
+    });
+
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };
