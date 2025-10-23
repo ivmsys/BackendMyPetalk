@@ -1,6 +1,7 @@
 // controllers/user.controller.js
 const UserModel = require('../models/user.model');
 const PetModel = require('../models/pet.model');
+const FriendshipModel = require('../models/friendship.model');
 // controllers/user.controller.js
 const cloudinary = require('cloudinary').v2;
 // ... (asegúrate de que esté configurado como en pet.controller.js)
@@ -92,34 +93,39 @@ exports.uploadProfilePicture = async (req, res) => {
 
 // controllers/user.controller.js -> Añade esta función
 // Controlador para obtener el perfil público de otro usuario
+// controllers/user.controller.js -> Reemplaza getUserProfile
 exports.getUserProfile = async (req, res) => {
   try {
-    const userIdToView = req.params.userId; // ID del perfil a ver (de la URL)
-    const currentUserId = req.user.id; // ID del usuario logueado (del token)
+    const userIdToView = req.params.userId;
+    const currentUserId = req.user.id;
 
     if (userIdToView === currentUserId) {
-      // Si intenta ver su propio perfil, redirigirlo a /me (o manejarlo aquí)
-      // Por simplicidad, devolveremos un error por ahora.
       return res.status(400).json({ message: 'Usa /api/users/me para ver tu propio perfil.' });
     }
 
-    // Usamos Promise.all para buscar datos del usuario y sus mascotas en paralelo
+    // Buscamos usuario y mascotas en paralelo
     const [userData, petsData] = await Promise.all([
       UserModel.findByIdPublic(userIdToView),
-      PetModel.findByOwnerIdPublic(userIdToView) // Usa la nueva función del modelo de mascotas
+      PetModel.findByOwnerIdPublic(userIdToView)
     ]);
 
     if (!userData) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    // (Opcional) Podríamos buscar el estado de amistad aquí también si no lo hicimos en la búsqueda
-    // const friendship = await FriendshipModel.findExisting(currentUserId, userIdToView);
+    // --- ¡NUEVO! Buscar estado de amistad ---
+    let friendshipStatus = null;
+    const friendship = await FriendshipModel.findExisting(currentUserId, userIdToView);
+    if (friendship) {
+        friendshipStatus = friendship.status; // 'pending', 'accepted', 'rejected', etc.
+        // Podríamos añadir quién envió la solicitud pendiente si quisiéramos ser más específicos
+    }
+    // --- FIN DE NUEVO ---
 
     res.json({
       user: userData,
-      pets: petsData
-      // friendshipStatus: friendship ? friendship.status : null 
+      pets: petsData,
+      friendshipStatus: friendshipStatus // <-- Añadimos el estado a la respuesta
     });
 
   } catch (error) {
