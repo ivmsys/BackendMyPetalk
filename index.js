@@ -8,7 +8,8 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const petRoutes = require('./routes/pet.routes');
 const postRoutes = require('./routes/post.routes');
-// (Aquí importaremos más rutas en el futuro, ej: post.routes.js)
+const friendshipRoutes = require('./routes/friendship.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -32,7 +33,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/pets', petRoutes);
 app.use('/api/posts', postRoutes);
-// (Tu ruta de /pingdb ya no es necesaria, la borramos)
+app.use('/api/friendships', friendshipRoutes);
+app.use('/api/notifications', notificationRoutes);
 // (El pool de BD también lo borramos de aquí, ahora está en utils/db.js)
 
 // Iniciar el servidor
