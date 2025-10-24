@@ -91,3 +91,15 @@ exports.findAll = async (currentUserId) => {
     like_count: parseInt(row.like_count, 10)
   }));
 };
+
+// models/post.model.js -> Añade esta función
+// Modelo para eliminar un post por su ID y el ID del autor
+exports.deleteByIdAndAuthor = async (postId, authorId) => {
+  const query = `
+    DELETE FROM posts
+    WHERE post_id = $1 AND author_id = $2
+    RETURNING post_id; -- Devuelve el ID si se borró algo
+  `;
+  const { rows } = await db.query(query, [postId, authorId]);
+  return rows.length > 0; // Devuelve true si se borró, false si no
+};

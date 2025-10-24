@@ -36,5 +36,10 @@ router.post(
   authMiddleware, // <-- Requiere login
   postController.toggleLike
 );
-
+// (Para eliminar un post - PROTEGIDA)
+router.delete(
+  '/:postId',
+  authMiddleware, // Requiere login
+  postController.deletePost
+);
 module.exports = router;

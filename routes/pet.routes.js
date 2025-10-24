@@ -35,5 +35,11 @@ router.post(
   uploadMiddleware.single('image'), 
   petController.uploadPetPicture
 );
+// DELETE /api/pets/:petId
+// (Para eliminar una mascota - PROTEGIDA)
+router.delete(
+  '/:petId',
+  petController.deletePet // Ya tenemos authMiddleware aplicado a todo el router
+);
 
 module.exports = router;

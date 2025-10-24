@@ -66,3 +66,14 @@ exports.findByOwnerIdPublic = async (ownerId) => {
   const { rows } = await db.query(query, [ownerId]);
   return rows;
 };
+// Modelo para eliminar una mascota por su ID y el ID del dueño
+exports.deleteByIdAndOwner = async (petId, ownerId) => {
+  const query = `
+    DELETE FROM pets
+    WHERE pet_id = $1 AND owner_id = $2
+    RETURNING pet_id; -- Devuelve el ID si se borró algo
+  `;
+  const { rows } = await db.query(query, [petId, ownerId]);
+  // rowCount indica cuántas filas se borraron (debería ser 1 o 0)
+  return rows.length > 0; // Devuelve true si se borró, false si no
+};

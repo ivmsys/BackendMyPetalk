@@ -115,3 +115,22 @@ exports.toggleLike = async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };
+// Controlador para eliminar un post
+exports.deletePost = async (req, res) => {
+  const authorId = req.user.id; // Del token
+  const { postId } = req.params; // De la URL
+
+  try {
+    const deleted = await PostModel.deleteByIdAndAuthor(postId, authorId);
+
+    if (!deleted) {
+      return res.status(404).json({ message: 'Post no encontrado o no tienes permiso para eliminarlo.' });
+    }
+
+    res.json({ message: 'Post eliminado exitosamente.' });
+
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};

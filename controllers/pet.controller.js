@@ -99,3 +99,24 @@ exports.uploadPetPicture = async (req, res) => {
   res.status(500).json({ message: 'Error en el servidor' });
 }
 };
+
+// Controlador para eliminar una mascota
+exports.deletePet = async (req, res) => {
+  const ownerId = req.user.id; // Del token
+  const { petId } = req.params; // De la URL
+
+  try {
+    const deleted = await PetModel.deleteByIdAndOwner(petId, ownerId);
+
+    if (!deleted) {
+      // Si no se borró, es porque no existe o no le pertenece
+      return res.status(404).json({ message: 'Mascota no encontrada o no tienes permiso para eliminarla.' });
+    }
+
+    res.json({ message: 'Mascota eliminada exitosamente.' });
+
+  } catch (error) {
+    console.error('Error deleting pet:', error);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
+};
