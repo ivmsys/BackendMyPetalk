@@ -6,7 +6,7 @@ const postController = require('../controllers/post.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const uploadMiddleware = require('../middleware/upload.middleware');
 const getUserIdMiddleware = require('../middleware/getUserId.middleware');
-
+const commentRoutes = require('./comment.routes'); // <-- AÑADE ESTA LÍNEA
 // --- Rutas ---
 // POST /api/posts/
 router.post(
@@ -42,4 +42,6 @@ router.delete(
   authMiddleware, // Requiere login
   postController.deletePost
 );
+
+router.use('/:postId/comments', commentRoutes);
 module.exports = router;
