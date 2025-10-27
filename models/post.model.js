@@ -40,57 +40,57 @@ exports.create = async ({ authorId, content, petIds, mediaUrls }) => {
 exports.findAll = async (currentUserId) => {
   const query = `
     SELECT 
-        p.post_id,
-        p.content,
-        p.created_at,
-        u.user_id AS author_id,
-        u.username AS author_username,
-
-        (SELECT COUNT(*) FROM post_likes pl_all WHERE pl_all.post_id = p.post_id) AS like_count,
-
-        (CASE WHEN $1::UUID IS NOT NULL AND EXISTS (
-            SELECT 1 FROM post_likes pl_user 
-            WHERE pl_user.post_id = p.post_id AND pl_user.user_id = $1
-        ) THEN true ELSE false END) AS user_has_liked,
-
-        COALESCE(
-          (SELECT json_agg(json_build_object(
-              'pet_id', pet.pet_id, 'name', pet.name
-          ))
-           FROM post_pet_tags ptt
-           JOIN pets pet ON ptt.pet_id = pet.pet_id
-           WHERE ptt.post_id = p.post_id),
-          '[]'::json
-        ) AS tagged_pets,
-
-        -- ¡NUEVA SECCIÓN! Agrupar todos los media en un array JSON
-        COALESCE(
-          (SELECT json_agg(json_build_object(
-              'media_id', pm.media_id,
-              'url', pm.media_url,
-              'type', pm.media_type
-          ))
-           FROM post_media pm
-           WHERE pm.post_id = p.post_id),
-          '[]'::json
-        ) AS media
-
+      p.post_id,
+      p.content,
+      p.created_at,
+      u.user_id AS author_id,
+      u.username AS author_username,
+      (SELECT COUNT(*) FROM post_likes pl_all WHERE pl_all.post_id = p.post_id) AS like_count,
+      (CASE WHEN $1::UUID IS NOT NULL AND EXISTS (
+        SELECT 1 FROM post_likes pl_user 
+        WHERE pl_user.post_id = p.post_id AND pl_user.user_id = $1
+      ) THEN true ELSE false END) AS user_has_liked,
+      
+      -- ⭐ NUEVO: Contador de comentarios
+      (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.post_id) AS comment_count,
+      
+      COALESCE(
+        (SELECT json_agg(json_build_object(
+          'pet_id', pet.pet_id, 'name', pet.name
+        ))
+        FROM post_pet_tags ptt
+        JOIN pets pet ON ptt.pet_id = pet.pet_id
+        WHERE ptt.post_id = p.post_id),
+        '[]'::json
+      ) AS tagged_pets,
+      
+      -- Agrupar todos los media en un array JSON
+      COALESCE(
+        (SELECT json_agg(json_build_object(
+          'media_id', pm.media_id,
+          'url', pm.media_url,
+          'type', pm.media_type
+        ))
+        FROM post_media pm
+        WHERE pm.post_id = p.post_id),
+        '[]'::json
+      ) AS media
     FROM posts p
-
     JOIN users u ON p.author_id = u.user_id
-
     GROUP BY p.post_id, u.user_id
     ORDER BY p.created_at DESC
     LIMIT 50;
   `;
-
+  
   const { rows } = await db.query(query, [currentUserId]);
-
+  
   return rows.map(row => ({
     ...row,
-    like_count: parseInt(row.like_count, 10)
+    like_count: parseInt(row.like_count, 10),
+    comment_count: parseInt(row.comment_count, 10) // ⭐ Convertir a número también
   }));
 };
+
 
 // models/post.model.js -> Añade esta función
 // Modelo para eliminar un post por su ID y el ID del autor
