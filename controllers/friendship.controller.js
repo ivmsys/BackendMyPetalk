@@ -61,8 +61,18 @@ exports.acceptRequest = async (req, res) => {
     if (notification) {
         await NotificationModel.markAsRead([notification.notification_id]);
     }
-    // Optional: Create notification for the original sender?
-    // await NotificationModel.create({ userId: friendship.user_id1, type: 'friend_accepted', senderId: recipientId, relatedEntityId: friendshipId });
+    // Crear notificación para el usuario QUE ENVIÓ la solicitud original
+    // El 'recipientId' es quien ACEPTA. El 'senderId' es el otro usuario.
+    const senderId = (updatedFriendship.user_id1 === recipientId) 
+                      ? updatedFriendship.user_id2 
+                      : updatedFriendship.user_id1;
+
+    await NotificationModel.create({ 
+        userId: senderId,               // Usuario que recibe esta nueva notificación
+        type: 'friend_accepted',        // Tipo de notificación
+        senderId: recipientId,          // Quién aceptó (tú)
+        relatedEntityId: friendshipId   // ID de la amistad
+    });
 
     res.json({ message: 'Solicitud de amistad aceptada.', friendship: updatedFriendship });
 

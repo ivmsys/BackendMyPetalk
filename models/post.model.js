@@ -103,3 +103,10 @@ exports.deleteByIdAndAuthor = async (postId, authorId) => {
   const { rows } = await db.query(query, [postId, authorId]);
   return rows.length > 0; // Devuelve true si se borró, false si no
 };
+
+// Modelo para encontrar un post por su ID (para obtener el autor)
+exports.findById = async (postId) => {
+  const query = 'SELECT post_id, author_id FROM posts WHERE post_id = $1';
+  const { rows } = await db.query(query, [postId]);
+  return rows[0]; // Devuelve el post o undefined
+};

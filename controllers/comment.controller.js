@@ -2,6 +2,8 @@
 const CommentModel = require('../models/comment.model');
 const PostModel = require('../models/post.model'); // Para verificar que el post exista
 const UserModel = require('../models/user.model'); // Para obtener datos del autor
+const NotificationModel = require('../models/notification.model');
+
 const { validationResult } = require('express-validator');
 
 // Controlador para añadir un comentario a un post
@@ -25,11 +27,19 @@ exports.addComment = async (req, res) => {
 
     // Crear el comentario
     const newComment = await CommentModel.create({ postId, authorId, content });
-
+    const post = await PostModel.findById(postId); // Reutilizamos la función añadida antes
+    if (post && post.author_id !== authorId) { 
+      await NotificationModel.create({
+        userId: post.author_id,      // Notificación para el autor del post
+        type: 'comment',             // Tipo: comment
+        senderId: authorId,          // Quién comentó
+        relatedEntityId: postId      // ID del post comentado
+      });
+    }
     // Obtener el nombre de usuario para devolverlo en la respuesta
     // (Alternativa: Modificar CommentModel.create para que devuelva el username)
     const author = await UserModel.findById(authorId); 
-
+    
     // Devolvemos el comentario incluyendo el nombre del autor
     res.status(201).json({
       message: 'Comentario añadido exitosamente',
