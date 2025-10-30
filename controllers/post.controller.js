@@ -99,16 +99,16 @@ exports.toggleLike = async (req, res) => {
       // 3. Si no existe, crearlo (like)
       await LikeModel.create(userId, postId);
       userHasLiked = true;
-    }
 
-    const post = await PostModel.findById(postId);
-    if (post && post.author_id !== userId) { // Verificar que el post existe y no es propio
-      await NotificationModel.create({
-        userId: post.author_id,   // Notificación para el autor del post
-        type: 'like',             // Tipo: like
-        senderId: userId,         // Quién dio like
-        relatedEntityId: postId   // ID del post que recibió el like
-      });
+      const post = await PostModel.findById(postId);
+      if (post && post.author_id !== userId) { // Verificar que el post existe y no es propio
+        await NotificationModel.create({
+          userId: post.author_id,   // Notificación para el autor del post
+          type: 'like',             // Tipo: like
+          senderId: userId,         // Quién dio like
+          relatedEntityId: postId   // ID del post que recibió el like
+        });
+      }
     }
 
     // 4. Obtener el nuevo conteo total
