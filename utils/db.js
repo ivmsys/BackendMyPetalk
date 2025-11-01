@@ -3,10 +3,7 @@ const { Pool } = require('pg');
 
 // pg usará automáticamente la variable DATABASE_URL
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  connectionString: process.env.DATABASE_URL
 });
 
 // Exportamos una función para hacer "queries"
