@@ -3,6 +3,7 @@ const UserModel = require('../models/user.model');
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken'); // <-- AÑADE ESTA LÍNEA
+const { sendMail } = require('../config/mailer');
 require('dotenv').config(); // <-- AÑADE ESTA LÍNEA (para leer process.env.JWT_SECRET)
 
 exports.register = async (req, res) => {
@@ -31,7 +32,19 @@ exports.register = async (req, res) => {
       email,
       passwordHash
     });
-
+    // 4b. Enviar correo de bienvenida
+    try {
+      await sendMail({
+        to: newUser.email,
+        subject: '¡Bienvenido a MyPetalk!',
+        html: `<h1>¡Hola ${newUser.username}!</h1>
+              <p>Gracias por registrarte en MyPetalk, la red social para tus mascotas.</p>`
+      });
+    } catch (emailError) {
+      // Si el correo falla, no rompemos el registro.
+      // Solo lo reportamos en los logs del servidor.
+      console.error('Error al enviar correo de bienvenida:', emailError);
+    }
     // 5. Responder al cliente (sin enviar el hash de la contraseña)
     res.status(201).json({
       message: 'Usuario registrado exitosamente',
