@@ -11,15 +11,22 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  * @param {string} subject - El asunto del correo
  * @param {string} html - El contenido HTML del correo
  */
-exports.sendMail = async ({ to, subject, html }) => {
+// config/mailer.js
+// ... (const resend = new Resend(...) se queda igual) ...
+
+exports.sendMail = async ({ to, subject, html, fromEmail }) => {
   try {
 
-    // ¡Importante! Usa el correo de tu dominio verificado
-    // Reemplaza 'hola@mypetalk.com' si usaste otro
-    const fromEmail = process.env.EMAIL_FROM || 'istvanvelamarquez@mypetalk.com'; 
+    // --- LÓGICA ACTUALIZADA ---
+    // 1. Usa el 'fromEmail' que nos pasaron, o
+    // 2. Cae al 'EMAIL_FROM' del docker-compose.yml, o
+    // 3. Usa un correo predeterminado final.
+    const fromAddress = fromEmail || process.env.EMAIL_FROM || 'istvanvelamarquez@mypetalk.com'; 
+    // --- FIN LÓGICA ---
 
     const { data, error } = await resend.emails.send({
-      from: `PetNet <${fromEmail}>`, // El remitente DEBE ser de tu dominio verificado
+      // El nombre "PetNet" puede ser dinámico también si quisieras
+      from: `MyPetalk <${fromAddress}>`, // <-- USA LA VARIABLE 'fromAddress'
       to: to,
       subject: subject,
       html: html,

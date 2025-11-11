@@ -36,15 +36,16 @@ exports.register = async (req, res) => {
     try {
       await sendMail({
         to: newUser.email,
-        subject: '¡Bienvenido a MyPetalk!',
+        subject: '¡Bienvenido a PetNet!',
         html: `<h1>¡Hola ${newUser.username}!</h1>
-              <p>Gracias por registrarte en MyPetalk, la red social para tus mascotas.</p>`
+              <p>Gracias por registrarte en PetNet, la red social para tus mascotas.</p>`,
+        // --- AÑADE ESTA LÍNEA ---
+        fromEmail: 'registration@mypetalk.com' 
       });
     } catch (emailError) {
-      // Si el correo falla, no rompemos el registro.
-      // Solo lo reportamos en los logs del servidor.
-      console.error('Error al enviar correo de bienvenida:', emailError);
+      // ... (el catch se queda igual)
     }
+
     // 5. Responder al cliente (sin enviar el hash de la contraseña)
     res.status(201).json({
       message: 'Usuario registrado exitosamente',
