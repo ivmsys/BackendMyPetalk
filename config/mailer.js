@@ -16,7 +16,7 @@ exports.sendMail = async ({ to, subject, html }) => {
 
     // ¡Importante! Usa el correo de tu dominio verificado
     // Reemplaza 'hola@mypetalk.com' si usaste otro
-    const fromEmail = process.env.EMAIL_FROM || 'test@mypetalk.com'; 
+    const fromEmail = process.env.EMAIL_FROM || 'istvanvelamarquez@mypetalk.com'; 
 
     const { data, error } = await resend.emails.send({
       from: `PetNet <${fromEmail}>`, // El remitente DEBE ser de tu dominio verificado
